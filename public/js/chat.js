@@ -4,7 +4,7 @@ const $messageForm = document.querySelector('#messageForm')
 const $messageFormInput = $messageForm.querySelector('input')
 const $messageFormButton = $messageForm.querySelector('button')
 const $sendLocationButton = document.querySelector('#send-location')
-// 2 things we need for render template. 1. template itself and the plcae where the template renders
+// 2 things we need for render template. 1. template itself and the place where the template renders
 const $messages = document.querySelector('#messages')
 
 // templates
@@ -13,24 +13,12 @@ const locationMessageTemplate = document.querySelector('#location-message-templa
 const sidebarTemplate = document.querySelector('#sidebar-template').innerHTML
 // both client and server can use socket's method, the object contains info about the connection
 // before client send out something, client should receive something from the server
-/*socket.on('counterUpdated', (count) =>
-{
-    console.log('The count has been updated!', count)
-    
-})
-
-document.querySelector('#increment').addEventListener('click', () =>
-{
-    console.log('Clicked')
-    socket.emit('increment') // send out event to the server w/o data as the server knows the current count
-    // it only adds one to the counter
-})*/
 
 // Using qs library to parse the query string to get the username and room. location.search is provided by browser to get the query string 
 const { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true }) // to take care of question mark
 
 // function to perform autoscrolling only when user viewing the most recent content not search/view older content
-// make sure user checking the history without interruption
+// make sure no autoscrolling when user is checking the chat history 
 const autoscroll = () =>
 {
     // new message element
@@ -58,12 +46,12 @@ const autoscroll = () =>
 }
 
 // this single connection listens. 2nd arg is the function. whatever pass in the 2nd one from the server
-socket.on('message', (message) => //message is an object not only a string now
+socket.on('message', (message) => //message is an object not only a string 
 {
     console.log(message) // moment lib is already loaded via script tag in index.html
     const html = Mustache.render(messageTemplate, { username: message.username, message: message.text, createdAt: moment(message.createdAt).format('h:mm a') }) // use Mustache templating lib to define html template
     // and render with our data from js, so it can render all sorts of dynamic data to the page
-    $messages.insertAdjacentHTML('beforeend', html) // before the message div ends
+    $messages.insertAdjacentHTML('beforeend', html) // insert content before the message div ends
     autoscroll()
 })
 
@@ -82,16 +70,11 @@ socket.on('roomData', ({room, users}) =>
     document.querySelector('#sidebar').innerHTML = html
 })
 
-//document.querySelector('#messageForm').addEventListener('submit', (event) =>
 $messageForm.addEventListener('submit', (event) =>
 {   
     event.preventDefault()
     const message = event.target.elements.message.value // event.target is form and any element name is within the form
-    /*socket.emit('sendMessage', message, (message) => {
-        // third arg the server send out is the function will be run when the event is acknowledged from server
-        console.log('The message was delivered', message)
-    }) // send out event to the server with data */
-    // using bad-words to filter
+    
     if (!message)
     {
         return alert('You must type something to send out!')
@@ -99,8 +82,7 @@ $messageForm.addEventListener('submit', (event) =>
     // disable the button once the form is submitted to prevent double send at the same time
     $messageFormButton.setAttribute('disabled', 'disabled') // the attribute name and the value
     
-    //socket.emit('sendMessage', message, (error) => {
-    socket.emit('sendMessage', message, (error) => {
+        socket.emit('sendMessage', message, (error) => {
         // enable button for sending next message
         $messageFormButton.removeAttribute('disabled')
         $messageFormInput.value = '' // clear the input and set focus
@@ -108,14 +90,13 @@ $messageForm.addEventListener('submit', (event) =>
         // third arg the server send out is the function will be run when the event is acknowledged from server
         if(error)
         {
-            return console.log(error)
+            return alert(error)
         }
         console.log('The message was delivered.')
     })
 })
 
 // to fetch the user's location when the Send Location button is clicked
-//document.querySelector('#send-location').addEventListener('click', () =>
 $sendLocationButton.addEventListener('click', () =>
 {
    // check if the browser support geolocation 
